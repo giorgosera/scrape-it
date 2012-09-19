@@ -1,8 +1,13 @@
 from BeautifulSoup import BeautifulSoup
 import urllib2
 import datetime
+from mongoengine import *
 
-html = urllib2.urlopen("http://www.groupon.co.uk/deals/national-deal/26000bijouxcom/10250996").read()
+from model import Deal, DealHistory
+
+connect('MissMason')
+
+html = urllib2.urlopen("http://www.groupon.co.uk/deals/national-deal/Bonusprint/10458922").read()
 soup = BeautifulSoup(html)
 
 #Get deal's title
@@ -21,6 +26,17 @@ amount_sold = amount_sold_tag.string.rpartition(';')[2]
 
 #Record date
 date = datetime.datetime.now()
+
+deal = Deal()
+deal.title = title
+deal.price = price
+
+deal_history = DealHistory()
+deal_history.time = date
+deal_history.quantity = amount_sold
+deal.deal_history.append(deal_history)
+
+deal.save()
 
 print 'Scraping Groupon biatch!'
 print '==========================='

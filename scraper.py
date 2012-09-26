@@ -2,12 +2,12 @@ from BeautifulSoup import BeautifulSoup
 import urllib2
 import datetime
 from mongoengine import *
-
+from mongoengine.queryset import DoesNotExist
 from model import Deal, DealHistory
 
 connect('MissMason')
 
-html = urllib2.urlopen("http://www.groupon.co.uk/deals/national-deal/Bonusprint/10458922").read()
+html = urllib2.urlopen("http://www.groupon.co.uk/deals/national-deal/Saverstore/10832959").read()
 soup = BeautifulSoup(html)
 
 #Get deal's title
@@ -27,9 +27,12 @@ amount_sold = amount_sold_tag.string.rpartition(';')[2]
 #Record date
 date = datetime.datetime.now()
 
-deal = Deal()
-deal.title = title
-deal.price = price
+try: 
+	deal = Deal.objects(title=title).get()
+except DoesNotExist, e:
+	deal = Deal()
+	deal.title = title
+	deal.price = price
 
 deal_history = DealHistory()
 deal_history.time = date
@@ -38,11 +41,9 @@ deal.deal_history.append(deal_history)
 
 deal.save()
 
-print 'Scraping Groupon biatch!'
-print '==========================='
-print '-->Item: ', title
-print '-->Price: ', price
-print '-->Quantity sold: ', amount_sold
-print '-->Datetime: ', date
-print '==========================='
+print deal.title
+for item in deal.deal_history:
+	print item.time
+	print item.quantity
+	print '------------------'
 
